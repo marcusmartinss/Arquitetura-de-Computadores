@@ -1,0 +1,23 @@
+.data
+    # area para definicao dos dados na memoria principal
+
+    msg: .asciiz "Ola Mundo\n"  # definicao da string msg
+
+.text
+    # area para instrucoes do programa
+
+    main:
+        li $v0, 4
+            # Load immediate (li) - carrega valor imediato em registrador
+            # $v0 - registrador de retorno de chamada de sistema
+            # 4 - codigo de chamada de sistema para impressao de string
+        la $a0, msg
+            # Load address (la) - carrega endereco de memoria em registrador
+            # $a0 - registrador de argumento de chamada de sistema
+            # msg - nome da string
+        syscall
+            # chamada de sistema para impressao de string
+
+        li $v0, 10
+            # 10 - codigo de chamada de sistema para finalizacao do programa
+        syscall

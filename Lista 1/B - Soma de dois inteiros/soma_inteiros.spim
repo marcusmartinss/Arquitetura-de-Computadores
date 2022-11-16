@@ -1,0 +1,27 @@
+.data
+    quebra_de_linha: .asciiz "\n"
+
+.text
+    main:
+        li $v0, 5 # 5 - Leitura de inteiro
+        syscall
+
+        move $t0, $v0 # $t0 = valor lido
+        
+        li $v0, 5
+        syscall
+
+        move $t1, $v0 # $t1 = valor lido
+
+        add $s0, $t0, $t1 # $s0 = $t0 + $t1
+        
+        li $v0, 1 # 1 - Escrita de inteiro
+        move $a0, $s0 # $a0 = $s0
+        syscall
+
+        li $v0, 4 # 4 - Escrita de string
+        la $a0, quebra_de_linha
+        syscall
+
+        li $v0, 10 # 10 - Finaliza execução
+        syscall
