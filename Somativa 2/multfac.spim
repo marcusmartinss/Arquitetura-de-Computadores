@@ -1,0 +1,61 @@
+# Somente a funcao multfac deve ser entregue, sem main ou outras funcoes
+
+multfac:
+    addi        $t4, $zero, 32                      # $t4 = 32,  onde $t4 eh o contador do deslocamento
+
+    # verificando se os numeros recebidos sao negativos
+    slt         $t8, $a0,   $zero                   # se a0 < zero entao t8 = 1 senao t8 = 0, a0 eh o multiplicando
+    slt         $t9, $a1,   $zero                   # se a1 < zero entao t9 = 1 senao t9 = 0, a1 eh o multiplicador
+
+    # se os números forem negativos,  transforma-los em positivos
+    beq         $t8, $zero, verifica_a1             # se a0 for positivo (nao sendo negativo na linha 8), pula para a verificação do a1
+    nor         $a0, $a0,   $zero                   # VVV
+    addi        $a0, $a0,   1                       # se a0 for negativo,  transforma-se a0 em positivo
+
+# apos a verificacao de a0, e sua possivel mudanca de sinal, verifica-se a1 quanto a positividade
+verifica_a1: 
+    beq         $t9, $zero, incializa_produto       # se a1 for positivo (nao sendo negativo na linha 9), inicia-se o produto
+    nor         $a1, $a1,   $zero                   # VVV
+    addi        $a1, $a1,   1                       # se a1 for negativo,  transforma-se a1 em positivo
+
+# sao inicializadas as variaveis do produto parcial
+incializa_produto:
+    move        $t0, $zero                          # $t0 = 0, sendo t0 o produto parcial (high)
+    move        $t1, $a1                            # $t1 = a1, sendo t1 o produto parcial (low) e a1 o multiplicador
+
+# eh verificado o bit menos significativo de t1
+verifica_lsb:
+    andi        $t2, $t1,   1		                # t2 = t1 & 1,  onde t1 eh o produto parcial (low), pega-se o bit menos significativo de t1 e passa para t2
+    beq         $t2, $zero, deslocamento                  # se o bit menos significativo de t1 for 0, pula para o deslocamento
+    add         $t0, $t0,   $a0                     # se o bit menos significativo de t1 for 1, soma-se o multiplicando a t0
+
+# acontece o deslocamento de bits
+deslocamento:
+    # recebimento do LSB de t0
+    andi        $t3, $t0,   1                        # t3 = t0 & 1,  onde t0 eh o produto parcial (high), pega-se o bit menos significativo de t0 e passa para t3
+
+    # deslocamento de bits
+    srl         $t0, $t0,   1                        # t0 = t0 >> 1,  desloca-se o bit menos significativo de t0 para a direita 
+    srl         $t1, $t1,   1                        # t1 = t1 >> 1,  desloca-se o bit menos significativo de t1 para a direita
+    sll         $t3, $t3,   31                       # t3 = t3 << 31,  desloca-se o bit menos significativo de t3 para a esquerda
+
+    # soma do produto(high) com o LSB de t3
+    add         $t1, $t1,   $t3                      # t1 = t1 + t3,  soma-se o bit menos significativo de t3 a t1
+    
+    # verifica loop
+    addi        $t4, $t4,   -1		                 # decrementa o contador do t4, que inicialmente tem valor 32
+    beq         $t4, $zero, sinal                    # se o contador do t4 for 0, pula para a verificacao do sinal
+    j           verifica_lsb                         # se o contador do t4 nao for 0, volta para a verificacao do LSB
+
+# correcao no sinal do produto
+sinal:
+    beq         $t8, $t9,   final                    # se a0 e a1 forem ambos positivos ou negativos, pula para a finalizacao
+    nor         $t1, $t1,   $zero                    # VVV
+    nor         $t0, $t0,   $zero                    # VVV
+    addi        $t1, $t1,   1                        # se a0 e a1 forem de sinais diferentes, transforma-se o produto em negativo
+
+# move para os registradores hi e lo os produtos parciais
+final:
+    mthi        $t0                                  # move o produto parcial (high) para o registrador hi
+    mtlo        $t1                                  # move o produto parcial (low)  para o registrador lo
+    jr          $ra                                  # retorna para a posicao do registrador ra

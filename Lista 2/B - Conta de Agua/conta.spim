@@ -1,0 +1,86 @@
+.data
+    quebra_de_linha: .asciiz "\n"
+
+.text
+    main:
+        li $v0, 5 # 5 - Leitura de inteiro
+        syscall
+
+        move $t0, $v0   # $t0 = $v0
+        move $t1, $t0   # $t1 = $t0
+        move $t2, $zero # $t2 = 0
+        move $t3, $zero # $t3 = 0
+
+        bgt	$t0, 100, cinco_reais       # se $t0 > 100 va para cinco_reais
+        bgt $t0, 30,  dois_reais        # senao, se $t0 > 30 va para dois_reais
+        bgt	$t0, 10, um_real	        # senao, se $t0 > 10 va para um_real
+        
+        j incluso
+
+    incluso_max:
+        add		$t2, $t2, 7		    # $t2 = $t2 + 7
+        jr		$ra					# jump to $ra
+
+    um_real_max:
+        add $t2, $t2, 20            # 30 - 11 = 19 || 19 * R$ 1 = R$ 19
+        jr $ra
+
+    dois_reais_max:
+        add $t2, $t2, 138           # 100 - 31 = 69 || 69 * R$ 2 = R$ 138
+        jr $ra
+
+    incluso:
+        add $t2, $t2, 7             # R$ 7
+        j finaliza
+
+    um_real:
+        jal	incluso_max
+
+        sub	$t1, $t1, 10		# $t1 = $t1 - 10
+        add $t2, $t1, $t2		# $t2 = $t1 + $t2
+
+        j finaliza
+
+    dois_reais:
+        jal	incluso_max
+        jal um_real_max
+
+        sub $t1, $t1, 30        # $t1 = $t1 - 30
+        li $s2, 2
+        mul $t3, $t1, $s2		# $t1 = $t1 * 2
+
+        add $t2, $t2, $t3       # $t2 = $t2 + $t3
+
+        j finaliza
+
+    cinco_reais:
+        jal incluso_max
+        jal um_real_max
+        jal dois_reais_max
+
+        sub $t1, $t1, 100       # $t1 = $t1 - 100
+        li $s2, 5
+        mul $t3, $t1, $s2		# $t1 = $t1 * 5
+        
+        add $t2, $t2, $t3      # $t2 = $t2 + $t3
+
+        j finaliza
+
+    finaliza:
+        jal	printa_valor				# jump to printa_valor and save position to $ra
+
+        li $v0, 10 # 10 - Finaliza execução
+        syscall
+    
+    printa_valor:
+
+        li $v0, 1 # 1 - Printa inteiro
+        move $a0, $t2
+        syscall
+
+        li $v0, 4 # 4 - Printa string
+        la $a0, quebra_de_linha
+        syscall
+
+        jr $ra
+
